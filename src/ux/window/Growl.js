@@ -22,11 +22,11 @@ Ext.define('Ext.ux.window.Growl', {
         },
         
         close: function(notification, evt, elt, options) {
+            var dom = notification.dom;
             var curAnim = notification.getActiveAnimation();
             if (curAnim) {
                 notification.stopAnimation();
             }
-            notification.fadeOut({duration: 1000, remove: true});
         },
         
 			  click: Ext.emptyFn
