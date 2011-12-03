@@ -5,7 +5,7 @@ Ext.define('Ext.ux.window.Growl', {
     closerTpl: '<div class="x-growl-msg-close"></div>',
     basicTpl: '<div class="x-growl-msg">{0}</div>',
     fullTpl: '<div class="x-growl-msg {2} {3}"><div class="x-growl-msg-title">{0}</div><div class="x-growl-msg-body">{1}</div></div>',
-    timer: undefined,
+    timers: {},
     
     cfg: {
         aligment: "t-t",
@@ -15,17 +15,18 @@ Ext.define('Ext.ux.window.Growl', {
         
         show: function(notification, options) {
             if (!options.pin) {
-                notification.fadeIn({duration: 1000})
-                this.timer = setTimeout("notification.fadeOut({duration: 1000, remove: true})",
-                                        options.ducation);
+                notification.fadeIn({duration: 1000}).fadeIn({duration: options.duration}).fadeOut({duration: 1000, remove: true});
             } else {
                 notification.fadeIn({duration: 1000});
             }
         },
         
         close: function(notification, evt, elt, options) {
-            clearTimeout(this.timer);
-            notification.fadeOut({remove: true});
+            var curAnim = notification.getActiveAnimation();
+            if (curAnim) {
+                notification.stopAnimation();
+            }
+            notification.fadeOut({duration: 1000, remove: true});
         },
         
 			  click: Ext.emptyFn
@@ -41,15 +42,15 @@ Ext.define('Ext.ux.window.Growl', {
     },
     
     notify: function(options) {
-        Ext.applyIf(options, this.cfg),
+        Ext.applyIf(options, this.cfg);
 
-        container = this.getContainer(),
-        hasIcon = options.iconCls ? "x-growl-msg-has-icon" : "",
-        hasTitle = options.title ? "x-growl-msg-has-title" : "",
-        content = options.content ? Ext.String.format(this.basicTpl, options.content) : 
+        var container = this.getContainer();
+        var hasIcon = options.iconCls ? "x-growl-msg-has-icon" : "";
+        var hasTitle = options.title ? "x-growl-msg-has-title" : "";
+        var content = options.content ? Ext.String.format(this.basicTpl, options.content) : 
             Ext.String.format(this.fullTpl, options.title || "", options.message || "", hasTitle + " " + hasIcon, options.iconCls || "");
         
-        notification = Ext.DomHelper[options.alignment.indexOf("b") === -1 ? "append" : "insertFirst"](container, content, true);
+        var notification = Ext.DomHelper[options.alignment.indexOf("b") === -1 ? "append" : "insertFirst"](container, content, true);
 
         notification.on("click", function(evt, elt, op) {
 				    if (Ext.fly(elt).hasCls("x-growl-msg-close")) {
@@ -60,12 +61,12 @@ Ext.define('Ext.ux.window.Growl', {
         });
         
         if (options.closable !== false) {
-            closer = Ext.DomHelper.append(notification, this.closerTpl, true);
+            var closer = Ext.DomHelper.append(notification, this.closerTpl, true);
             closer.fadeOut();
-            fadeIn = function(e) {
+            var fadeIn = function(e) {
                 closer.fadeIn();
             }
-            fadeOut = function(e) {
+            var fadeOut = function(e) {
                 closer.fadeOut();
             }
             notification.hover(fadeIn, fadeOut, closer);
